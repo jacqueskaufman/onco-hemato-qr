@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 
+const FORM_ENDPOINT =
+  "https://script.google.com/macros/s/AKfycbzJKuSHcRJFIhHDMrDzoabVvcdMFEM_nkNwV-u9EjObhUFXgdayfoViRFik3tTVLTrE/exec";
+
 const diseases = [
   { id: "leucemias", label: "🔴 Leucemias agudas", image: "/leucemias.jpg" },
   { id: "llc", label: "🟣 LLC", image: "/llc.jpg" },
@@ -15,6 +18,31 @@ export default function App() {
   const [selected, setSelected] = useState(null);
   const [prontuario, setProntuario] = useState("");
   const [medico, setMedico] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function salvarRegistro() {
+    if (!selected) return;
+
+    setSaving(true);
+
+    try {
+      await fetch(FORM_ENDPOINT, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({
+          prontuario: prontuario,
+          medico: medico,
+          suspeita: selected.label
+        })
+      });
+
+      setScreen("final");
+    } catch (error) {
+      alert("Erro ao salvar registro. Tente novamente.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   if (screen === "identificacao") {
     return (
@@ -101,10 +129,11 @@ export default function App() {
           />
 
           <button
-            style={styles.buttonPrimary}
-            onClick={() => setScreen("final")}
+            style={saving ? styles.buttonDisabled : styles.buttonPrimary}
+            disabled={saving}
+            onClick={salvarRegistro}
           >
-            Confirmar registro
+            {saving ? "Salvando..." : "Confirmar registro"}
           </button>
         </div>
       </div>
